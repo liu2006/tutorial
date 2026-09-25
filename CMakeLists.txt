@@ -1,35 +1,40 @@
 cmake_minimum_required(VERSION 4.4.3)
+project(game)
 
-project(vulkan)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 
 add_executable(${PROJECT_NAME})
-target_sources(${PROJECT_NAME} PRIVATE main.cpp)
+file(GLOB SOURCES
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
+)
+target_sources(${PROJECT_NAME}
+    PRIVATE
+    ${SOURCES}
+)
 
-set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
-set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(VENDOR_DIR "${CMAKE_CURRENT_SOURCE_DIR}/vendor")
+set(GLFW_DIR "${VENDOR_DIR}/glfw")
+set(VULKAN_DIR "${VENDOR_DIR}/vulkan/x86_64")
 
 include(FetchContent)
 FetchContent_Declare(
     glfw
-    GIT_REPOSITORY https://github.com/glfw/glfw.git
-    GIT_TAG d9d6f0f1f967807ffade6598ea9a631ebaf37a56
+    SOURCE_DIR "${GLFW_DIR}"
+)
+FetchContent_MakeAvailable(glfw)
+
+add_library(vulkan INTERFACE)
+target_link_directories(vulkan
+    INTERFACE
+    "${VULKAN_DIR}/lib"
 )
 
-FetchContent_Declare(
-    sdl
-    SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/SDL"
+target_include_directories(vulkan
+    INTERFACE
+    "${VULKAN_DIR}/include"
 )
 
-FetchContent_MakeAvailable(glfw sdl)
-target_link_libraries(${PROJECT_NAME} PRIVATE glfw SDL3::SDL3)
-
-
-
-
-
-
+target_link_libraries(${PROJECT_NAME} PRIVATE glfw vulkan)
